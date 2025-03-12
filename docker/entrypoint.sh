@@ -14,12 +14,12 @@ else
 fi
 
 # 1. Install dependencies first
-#echo "Installing dependencies..."
-#if [ "$APP_ENV" = "local" ]; then
-#    composer install --no-scripts --no-interaction --optimize-autoloader
-#else
-#    composer install --no-dev --no-scripts --no-interaction --optimize-autoloader
-#fi
+echo "Installing dependencies..."
+if [ "$APP_ENV" = "local" ]; then
+    composer install --no-scripts --no-interaction --optimize-autoloader
+else
+    composer install --no-dev --no-scripts --no-interaction --optimize-autoloader
+fi
 
 # 2. Generate and load key if needed (before any other Laravel commands)
 if [ -z "$APP_KEY" ] || ! grep -q '^APP_KEY=[^[:space:]]\+' "$ENV_FILE" || grep -q '^APP_KEY=$' "$ENV_FILE"; then
@@ -60,5 +60,3 @@ if [ ! -L public/storage ]; then
 fi
 
 exec "$@"
-
-

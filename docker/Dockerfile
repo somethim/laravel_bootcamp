@@ -1,7 +1,6 @@
 FROM php:8.3-fpm-alpine AS staging
 
 WORKDIR /var/www/html
-ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN apk add --no-cache \
     autoconf \
     bash \
@@ -56,27 +55,23 @@ FROM staging AS base
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY composer.* ./
 
-
 FROM base AS entrypoint-base
 COPY docker/entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
 
 FROM base AS artisan-base
 COPY --from=entrypoint-base /usr/local/bin/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY . .
 ENTRYPOINT ["entrypoint.sh"]
 
-FROM artisan-base AS development-artisan
-ENV APP_ENV=local \
-    APP_DEBUG=true
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=8000 --verbose 2>&1"]
-
 FROM base AS development
 ENV APP_ENV=local \
     APP_DEBUG=true
 RUN composer install --no-scripts --no-interaction --optimize-autoloader
 COPY . .
+
+FROM development AS development-artisan
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=8000 --verbose 2>&1"]
 
 FROM development AS development-queue
 CMD ["sh", "-c", "php artisan queue:listen --verbose 2>&1"]

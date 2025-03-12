@@ -1,9 +1,9 @@
 services:
-    wc-provider:
+    laxtive-provider:
         restart: unless-stopped
-        container_name: wc_provider
+        container_name: laxtive_provider
         networks:
-            - wc-network
+            - laxtive-network
         build:
             context: ..
             dockerfile: docker/Dockerfile
@@ -15,9 +15,9 @@ services:
         env_file:
             - ../.env
         depends_on:
-            wc-postgres:
+            laxtive-postgres:
                 condition: service_healthy
-            wc-redis:
+            laxtive-redis:
                 condition: service_healthy
         healthcheck:
             test: [ "CMD-SHELL", "curl -s -f -X GET http://localhost:8000/up | grep -q 'Application up' || exit 1" ]
@@ -26,11 +26,11 @@ services:
             retries: 3
             start_period: 30s
 
-    wc-queue:
+    laxtive-queue:
         restart: unless-stopped
-        container_name: wc_queue
+        container_name: laxtive_queue
         networks:
-            - wc-network
+            - laxtive-network
         build:
             context: ..
             dockerfile: docker/Dockerfile
@@ -40,7 +40,7 @@ services:
         env_file:
             - ../.env
         depends_on:
-            wc-provider:
+            laxtive-provider:
                 condition: service_healthy
         healthcheck:
             test: [ "CMD-SHELL", "ps aux | grep '[q]ueue:listen' || exit 1" ]
@@ -49,11 +49,11 @@ services:
             retries: 3
             start_period: 30s
 
-    wc-reverb:
+    laxtive-reverb:
         restart: unless-stopped
-        container_name: wc_reverb
+        container_name: laxtive_reverb
         networks:
-            - wc-network
+            - laxtive-network
         build:
             context: ..
             dockerfile: docker/Dockerfile
@@ -65,7 +65,7 @@ services:
         env_file:
             - ../.env
         depends_on:
-            wc-provider:
+            laxtive-provider:
                 condition: service_healthy
         healthcheck:
             test: [ "CMD-SHELL", "ps aux | grep '[r]everb:start' || exit 1" ]
@@ -74,39 +74,39 @@ services:
             retries: 3
             start_period: 30s
 
-    wc-postgres:
+    laxtive-postgres:
         image: postgres:latest
         restart: always
-        container_name: wc_postgres
+        container_name: laxtive_postgres
         networks:
-            - wc-network
+            - laxtive-network
         environment:
-            POSTGRES_USER: wc_postgres
-            POSTGRES_PASSWORD: wc_postgres
-            POSTGRES_DB: wc_postgres
+            POSTGRES_USER: laxtive_postgres
+            POSTGRES_PASSWORD: laxtive_postgres
+            POSTGRES_DB: laxtive_postgres
         ports:
             - "5432:5432"
         volumes:
-            - wc-postgres-data:/var/lib/postgresql/data
+            - laxtive-postgres-data:/var/lib/postgresql/data
         healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -U wc_postgres" ]
+            test: [ "CMD-SHELL", "pg_isready -U laxtive_postgres" ]
             interval: 30m
             timeout: 5s
             retries: 5
             start_period: 10s
 
-    wc-redis:
+    laxtive-redis:
         image: redis:latest
         restart: always
-        container_name: wc_redis
+        container_name: laxtive_redis
         command: bash -c "echo 1 > /proc/sys/vm/overcommit_memory && redis-server"
         privileged: true
         networks:
-            - wc-network
+            - laxtive-network
         ports:
             - "6379:6379"
         volumes:
-            - wc-redis-data:/data
+            - laxtive-redis-data:/data
         healthcheck:
             test: [ "CMD", "redis-cli", "ping" ]
             interval: 30m
@@ -115,9 +115,9 @@ services:
             start_period: 10s
 
 networks:
-    wc-network:
+    laxtive-network:
         driver: bridge
 
 volumes:
-    wc-postgres-data:
-    wc-redis-data:
+    laxtive-postgres-data:
+    laxtive-redis-data:
